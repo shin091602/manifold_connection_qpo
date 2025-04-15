@@ -1,0 +1,26 @@
+# ====================================
+# Git Commit Message Template for MATLAB Research
+# ====================================
+# Format:
+# <type>: <short summary> [optional issue or context]
+#
+# Types:
+#   feat     - 新しい機能や解析手法の追加
+#   fix      - バグ修正（数値誤差・インデックスミスなど）
+#   docs     - ドキュメントの変更（READMEやコメント等）
+#   style    - 空白・インデント・フォーマットなどの整理
+#   refactor - 機能変更なしの構造改善
+#   test     - テストコードや再現用スクリプトの追加
+#   perf     - 計算効率や速度の改善
+#   chore    - 設定ファイルやビルド関連、雑務の更新
+#   data     - 実験データや可視化用ファイルの更新
+#   exp      - 実験的な手法や試行コードの追加
+#
+# Example:
+# feat: add differential correction for Lyapunov orbit
+# fix: correct index error in manifold calculation
+# docs: update README with simulation instructions
+# data: add phase space plot for L1-L2 connection
+#
+# ------------------------------------
+# Write your commit message below:
