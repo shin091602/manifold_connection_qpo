@@ -110,7 +110,7 @@ p("d") = 6; % dimension of variables
 p("N") = 15; % number of cross section of invariant circle. 3とかだとガタガタになる．
 p("M") = 15; %number of invariant circle --the number of N has to be equal to the number of M.→離散フーリエ変換の都合上．あとM,Nは奇数じゃないとだめ．
 
-p("K") = 5e-2; %%radius of invariant circle.大きすぎるとcontinuationできない．小さすぎると，ランクが下がる．initiral = 1e-4
+p("K") = 2e-2; %%radius of invariant circle.大きすぎるとcontinuationできない．小さすぎると，ランクが下がる．initiral = 1e-4
 
 p("Iteration") = 50; %iteration of GMOS　%初期設定は50 % continuationの回数1000回にしてもfamilyほとんど変わらないが，少し高さが違う．．
 p("Threshold") = 1e-8; %converge threshold (初期設定は1e-8)
@@ -129,7 +129,7 @@ p("snap_fin_time") = 1.2*pi;%final time of snapshots %default:0.8pi
 % p("snap_ini_time") = 0.5*pi;%initial time of snapshots %default:pi/2
 % p("snap_fin_time") = 2.5*pi;
 p("snap_span") = 2;%number of snapshots defalut:6 (snapを何個取るか．多分manifoldのとき)
-p("num_iter") = 200;%number of grid points for interpolation
+p("num_iter") = 1080;%number of grid points for interpolation initial: 200
 snap_time = linspace(p("snap_ini_time"),p("snap_fin_time"),p("snap_span"));
 
 %% OPTIONS ODE
