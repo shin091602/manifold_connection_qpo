@@ -82,7 +82,6 @@ addpath(append(current_pass, '/Ayano functions/plot'));
 addpath(append(current_pass, '/Functions'));
 % GMOS
 addpath(append(current_pass, '/function_QPT'));
-addpath(append(current_pass, '/function_QPT/Hill3BP'));
 addpath(append(current_pass, '/function_QPT/CR3BP'));
 myTimer = tic;        %start timer
 
@@ -90,28 +89,28 @@ myTimer = tic;        %start timer
 
 %% INITIAL VALUES
 % L2 halo orbit --a sample orbit
-x0 = [1.010059516040882;0;0.008126717418058;0;-0.013983743043142;0];%state
-T = 3.0031;%period
+x0 = [1.116913489266650; 0; 0.021776489613409; 0; 0.186114812512697; 0];%state
+T = 3.407900091010860 * 2;%period
 
 %% DICTIONARY OF THE VARIABLES
 %%% notes:
 % constant values for the calculation are defined here.
 p = dictionary();
 
-p("Ms") = 1.9885e+30;%mass of Sun
-p("M1") = 5.9724e+24;%mass of Earth
-p("mu") = 3.00346093142064e-06;%mu--SE
+p("Ms") = 5.9724e+24;%mass of Sun　→ earth
+p("M1") = 7.3458e+22;%mass of Earth　→ moon
+p("mu") = 1.21536E-02;%mu--EM
 p("G") = 6.67300000000000e-11;%gravitational constant
-p("chara_length_CR3BP") = 149600000000.000;%[m]
-p("chara_mass_CR3BP") = 1.98850597240000e+30;%[kg]
-p("chara_time_CR3BP") = 5023117.97170552;%[s]
-p("N_CR3BP_SE") = 1.99079536979392e-07;
+p("chara_length_CR3BP") = 3.844e+8;%[m]
+p("chara_mass_CR3BP") = 5.9724e+24;%[kg]
+p("chara_time_CR3BP") = 3.7748e+5;%[s]
+p("N_CR3BP_SE") = 1.6645e-05;
 
 p("d") = 6; % dimension of variables
 p("N") = 15; % number of cross section of invariant circle. 3とかだとガタガタになる．
 p("M") = 15; %number of invariant circle --the number of N has to be equal to the number of M.→離散フーリエ変換の都合上．あとM,Nは奇数じゃないとだめ．
 
-p("K") = 1e-4; %%radius of invariant circle.大きすぎるとcontinuationできない．小さすぎると，ランクが下がる．
+p("K") = 5e-2; %%radius of invariant circle.大きすぎるとcontinuationできない．小さすぎると，ランクが下がる．initiral = 1e-4
 
 p("Iteration") = 50; %iteration of GMOS　%初期設定は50 % continuationの回数1000回にしてもfamilyほとんど変わらないが，少し高さが違う．．
 p("Threshold") = 1e-8; %converge threshold (初期設定は1e-8)
@@ -186,14 +185,14 @@ pacqp("coflg") = false;%correction only flag
 pacqp("fdcheck") = false;%finite difference check
 
 %% PSEUDO-ARCLENGTH CONTINUATION
-% fix T
-% sol_qpos = PAC_qpoms_CR3BP_matrix(z0,zpo,1e-5,Ud0,phi0,p,pacqp);%(Ref:(19)-(23))
+% fix T: sol_qpos = PAC_qpoms_CR3BP_matrix(z0,zpo,1e-5,Ud0,phi0,p,pacqp);
+sol_qpos = PAC_qpoms_CR3BP_matrix(z0,zpo,1e-5,Ud0,phi0,p,pacqp);%(Ref:(19)-(23))
 
 % fix Jacobi constant
-sol_qpos = PAC_qpoms_CR3BP_matrix_Jacobi_constant_fix(z0,zpo,1e-5,Ud0,phi0,p,pacqp,C_periodic);%(Ref:(19)-(23))
+% sol_qpos = PAC_qpoms_CR3BP_matrix_Jacobi_constant_fix(z0,zpo,1e-5,Ud0,phi0,p,pacqp,C_periodic);%(Ref:(19)-(23))
 
 %% save results
-data_name = strcat('Natural_Lyapunov_2D_matrix_inplane_QPT_CR3BP_L2');
+data_name = strcat('Natural_Lyapunov_2D_matrix_inplane_QPT_CR3BP_L2_EM');
 data_name = strrep(data_name,'.',',');
 save(data_name);
 

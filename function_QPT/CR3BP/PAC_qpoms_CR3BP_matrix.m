@@ -34,7 +34,7 @@ disp("corrected")
 [DFv,~] = DF_qpoms_matrix(ps{1,2},ps{2,2},p,zpo);
 % nullspace
 SVD_null = svd(DFv);
-ps{5,2} = null(DFv,min(SVD_null)*1e+1);
+ps{5,2} = null(DFv,min(SVD_null)*1.1);
 null_disp = strcat("Null size:",num2str((size(ps{5,2}))));
 disp(null_disp)
 % arrange the angle of vector in solution space
