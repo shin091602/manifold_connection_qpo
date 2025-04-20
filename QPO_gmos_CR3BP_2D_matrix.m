@@ -90,7 +90,7 @@ myTimer = tic;        %start timer
 %% INITIAL VALUES
 % L2 halo orbit --a sample orbit
 x0 = [1.116913489266650; 0; 0.021776489613409; 0; 0.186114812512697; 0];%state
-T = 3.407900091010860 * 2;%period
+T = 3.407900091010860;%period
 
 %% DICTIONARY OF THE VARIABLES
 %%% notes:
@@ -192,9 +192,9 @@ sol_qpos = PAC_qpoms_CR3BP_matrix(z0,zpo,1e-5,Ud0,phi0,p,pacqp);%(Ref:(19)-(23))
 % sol_qpos = PAC_qpoms_CR3BP_matrix_Jacobi_constant_fix(z0,zpo,1e-5,Ud0,phi0,p,pacqp,C_periodic);%(Ref:(19)-(23))
 
 %% save results
-data_name = strcat('Natural_Lyapunov_2D_matrix_inplane_QPT_CR3BP_L2_EM');
-data_name = strrep(data_name,'.',',');
-save(data_name);
+% data_name = strcat('Natural_Lyapunov_2D_matrix_inplane_QPT_CR3BP_L2_EM');
+% data_name = strrep(data_name,'.',',');
+% save(data_name);
 
 %% TORUS FAMILY
 for n=1:pacqp("n")
@@ -415,3 +415,19 @@ hold off
 time = strcat('calculation time: ', num2str(toc(myTimer)));
 disp(time);
 
+%% test
+figure();
+hold on
+plot3(ri{1}(1:180,1), ri{2}(1:180,1), ri{3}(1:180,1),'ro');
+
+%QPT
+hsurf = surf(ri{1,1},ri{2,1},ri{3,1},CO); % surfはplotみたいなもの．surf(X, Y, Z, color)．Colorはmatrixである必要がある．θ0×θ1＝200×200の点にinterpolate関数によって，θ0とθ1からひとつのxを得る．40000個のxのそれぞれの値に対し色が入れてある．dim(ri)=200*200*6(奥行きが[X,Y,Z,Xdot,Ydot,Zdot])←確認
+
+% for visualization（surfだけでは，曲面にしただけでmeshが見えてしまう．）
+shading interp %滑らかにする
+lightangle(27,36) %光を当てる
+lightangle(27,36)
+hold off
+%% 
+test_x = 1:1080;
+plot(test_x,ri{1}(:,1));
