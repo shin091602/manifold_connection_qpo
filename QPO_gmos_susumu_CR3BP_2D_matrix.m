@@ -200,135 +200,23 @@ sol_qpos = PAC_qpoms_CR3BP_matrix(z0,zpo,1e-5,Ud0,phi0,p,pacqp);%(Ref:(19)-(23))
 % data_name = strrep(data_name,'.',',');
 % save(data_name);
 
-%% TORUS FAMILY
-for n=1:pacqp("n")
-    %solution
-    solc_qpos = sol_qpos{n,1};
-    fin_qpos = solc_qpos{1,2};
+%% Focus on the last torus and interpolate
+%solution
+solc_qpos = sol_qpos{pacqp("n"),1};
+fin_qpos = solc_qpos{1,2};
 
-    % INTERPOLATION（2025点分のデータを40000点に拡張）
-    % collect grid points
-    % assuming N==M, meshgrid
-    %tht0, tht1 :meshgrid
-    tht0 = linspace(-2*pi,4*pi,p("N")*3); % dim=45
-    tht1 = linspace(-2*pi,4*pi,p("M")*3)'; % dim=45
-    %tht0_n,tht1_n :interpolated grid
-    tht0_n = linspace(-2*pi,4*pi,p("num_iter")); % dim=200
-    tht1_n = linspace(-2*pi,4*pi,p("num_iter")); % dim=200
-    % interpolate
-    [ri,~] = interpolate_torus(fin_qpos,tht0,tht1,tht0_n,tht1_n,p); %実データfin_qpos(dim=225)から，interpolate_torusも用いて間を埋める（225点のままでは粗く，曲面を滑らかにするため．）．40000点に拡張する．[th0, th1]→ri=[X,Y,Z,Xdot,Ydot,Zdot]. Xは200*200の行列．XはX_1からX_40000まである．
+% INTERPOLATION（2025点分のデータを40000点に拡張）
+% collect grid points
+% assuming N==M, meshgrid
+%tht0, tht1 :meshgrid
+tht0 = linspace(-2*pi,4*pi,p("N")*3); % dim=45
+tht1 = linspace(-2*pi,4*pi,p("M")*3)'; % dim=45
+%tht0_n,tht1_n :interpolated grid
+tht0_n = linspace(-2*pi,4*pi,p("num_iter")); % dim=200
+tht1_n = linspace(-2*pi,4*pi,p("num_iter")); % dim=200
+% interpolate
+[ri,~] = interpolate_torus(fin_qpos,tht0,tht1,tht0_n,tht1_n,p); %実データfin_qpos(dim=225)から，interpolate_torusも用いて間を埋める（225点のままでは粗く，曲面を滑らかにするため．）．40000点に拡張する．[th0, th1]→ri=[X,Y,Z,Xdot,Ydot,Zdot]. Xは200*200の行列．XはX_1からX_40000まである．
 
-    %% SURF PLOT
-    hinter = figure();
-    hold on
-    grid on
-    box on
-    axis equal
-    % plot orbit -- including periodic orbit
-    plot3(L2(1),L2(2),L2(3),'*','MarkerFaceColor','black','MarkerEdgeColor','black','MarkerSize',8);
-    view([-24 34])
-    xlabel('$x$[-]');
-    ylabel('$y$[-]');
-    zlabel('$z$[-]');
-
-    %quasi-periodic trajectory
-    for i=1:p("N")
-        [~,rep] = ode113(@(t,x) fun_ode_n_CR3BP(t, x, p("mu")),[0 zpo(end)],fin_qpos(p("d")*i-(p("d")-1):p("d")*i),options_ODE);
-        hqpt = plot3(rep(:,1),rep(:,2),rep(:,3),"b","Linewidth",0.5); % repは代表軌道(representive)．repをplotしないとtorusはただの図形みたいになって，分かりにくいから．
-    end
-
-    %color setting
-    CO = zeros(p("num_iter"),p("num_iter"),3);
-    CO(:,:,1) = 0.3010.*ones(p("num_iter")); % red
-    CO(:,:,2) = 0.5450.*ones(p("num_iter")); % green
-    CO(:,:,3) = 0.7.*ones(p("num_iter")); % blue
-
-    %QPT
-    hsurf = surf(ri{1,1},ri{2,1},ri{3,1},CO); % surfはplotみたいなもの．surf(X, Y, Z, color)．Colorはmatrixである必要がある．θ0×θ1＝200×200の点にinterpolate関数によって，θ0とθ1からひとつのxを得る．40000個のxのそれぞれの値に対し色が入れてある．dim(ri)=200*200*6(奥行きが[X,Y,Z,Xdot,Ydot,Zdot])←確認
-
-    % for visualization（surfだけでは，曲面にしただけでmeshが見えてしまう．）
-    shading interp %滑らかにする
-    lightangle(27,36) %光を当てる
-    lightangle(27,36)
-
-    % PO
-    plot_PO = plot3(x_PO(1,:), x_PO(2,:), x_PO(3,:), 'Color', 'k', 'LineWidth', 2);
-
-    legend([hqpt,hsurf],{"Quasi-periodic trajectory","Quasi-periodic tori"},'Location','northeast');
-    hold off
-end
-
-%% TORUS FAMILY (plot in a 1 figure)
-% plot torus
-f0 = figure;
-hold on;
-axis equal;
-grid on
-box on
-
-color      = jet;
-number_lim = linspace(1, pacqp("n"), size(color,1));
-Interp_number   = griddedInterpolant(number_lim, color);
-
-plot_interval = 1;
-rgb_i = cell(1, length(number_lim));
-for n = pacqp("n"):-1:1
-    %solution
-    solc_qpos = sol_qpos{n,1};
-    fin_qpos = solc_qpos{1,2};
-
-    rgb_i{n} = Interp_number(n);
-    %% INTERPOLATION
-    % collect grid points
-    % assuming N==M, meshgrid
-    %tht0, tht1 :meshgrid
-    tht0 = linspace(-2*pi,4*pi,p("N")*3);
-    tht1 = linspace(-2*pi,4*pi,p("M")*3)';
-    %tht0_n,tht1_n :interpolated grid
-    tht0_n = linspace(-2*pi,4*pi,p("num_iter"));
-    tht1_n = linspace(-2*pi,4*pi,p("num_iter"));
-    % interpolate
-    [ri,~] = interpolate_torus(fin_qpos,tht0,tht1,tht0_n,tht1_n,p);
-
-    %% SURF PLOT
-    % plot orbit -- including periodic orbit
-
-    %quasi-periodic trajectory
-    for i=1:p("N")
-        [~,rep] = ode113(@(t,x) fun_ode_n_CR3BP(t,x,p("mu")),[0 zpo(end)],fin_qpos(p("d")*i-(p("d")-1):p("d")*i),options_ODE);
-        if (n >= plot_interval) && (mod(n, plot_interval) == 0)
-            hqpt = plot3(rep(:,1),rep(:,2),rep(:,3),'Color', rgb_i{n},"Linewidth",0.5);
-
-            %color setting
-            CO = zeros(p("num_iter"),p("num_iter"),3);
-            CO(:,:,1) = rgb_i{n}(1).*ones(p("num_iter"));
-            CO(:,:,2) = rgb_i{n}(2).*ones(p("num_iter"));
-            CO(:,:,3) = rgb_i{n}(3).*ones(p("num_iter"));
-            hsurf = surf(ri{1,1},ri{2,1},ri{3,1},CO);
-
-            % for visualization
-            shading interp
-        end
-    end
-end
-
-plot3(L2(1),L2(2),L2(3),'*','MarkerFaceColor','black','MarkerEdgeColor','black','MarkerSize',8);
-
-colormap jet;
-c = colorbar;
-ylabel(c, 'number of family');
-clim([1 pacqp("n")]);
-c.Ticks = linspace(1, pacqp("n"), 5);
-
-xlabel('$x$[-]');
-ylabel('$y$[-]');
-zlabel('$z$[-]');
-
-view([-24 34])
-%lightangle(27,36)
-%lightangle(27,36)
-% legend([hqpt,hsurf],{"Quasi-periodic trajectory","Quasi-periodic tori"},'Location','northeast');
-hold off
 
 %% FOCUS ON ONE TORUS
 % designate a torus
@@ -339,6 +227,9 @@ fin_qpos_m = solc_qpos_m{1,2};
 %% MANIFOLD SURF PLOT
 % calculate the directions of the designated manifolds (-ρしたmonodromyの固有ベクトルを使ってmanifoldのdirection決める)
 del_w_us_inter_full = direction_manifold_CR3BP_matrix(fin_qpos_m,p);
+
+% calculate the manifolds orientation of the interpolated points
+del_w_us_interpolation = direction_manifold_interpolation(fin_qpos_m,p);
 
 % vector arrows
 U0 = zeros(p("d")*p("M"),1);
