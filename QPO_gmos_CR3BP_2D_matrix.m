@@ -83,6 +83,8 @@ addpath(append(current_pass, '/Functions'));
 % GMOS
 addpath(append(current_pass, '/function_QPT'));
 addpath(append(current_pass, '/function_QPT/CR3BP'));
+% SUSUMU
+addpath(append(current_pass, '/susumu functions'));
 myTimer = tic;        %start timer
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -428,6 +430,6 @@ shading interp %滑らかにする
 lightangle(27,36) %光を当てる
 lightangle(27,36)
 hold off
-%% 
+%%
 test_x = 1:1080;
 plot(test_x,ri{1}(:,1));
