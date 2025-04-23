@@ -229,19 +229,20 @@ fin_qpos_m = solc_qpos_m{1,2};
 del_w_us_inter_full = direction_manifold_CR3BP_matrix(fin_qpos_m,p);
 
 % calculate the manifolds orientation of the interpolated points
-del_w_us_interpolation = direction_manifold_interpolation(fin_qpos_m,p);
+del_w_us_interpolation = direction_manifold_interpolation(fin_qpos_m,ri,p);
 
-% vector arrows
-U0 = zeros(p("d")*p("M"),1);
+%% plot manifolds from the interpolated points
+num_iter = p("num_iter");
+num_iter = num_iter/3;
+U0 = zeros(p("d"),num_iter,num_iter);
 
 % invariant curve idx
-for i=1:p("M") %designate the invariant circle
-    k=p("d")*p("N")*(i-1)+1:p("d")*p("N")*i;
-    X0 = fin_qpos_m(k);
-    del_w_us = del_w_us_inter_full(:,:,i);
-    for j=1:p("N")%designate torus point
+for i=1:num_iter %designate the invariant circle
+    % invariant circle data
+    X0 = [ri{1}(1:num_iter,i),ri{2}(1:num_iter,i),ri{3}(1:num_iter,i),ri{4}(1:num_iter,i),ri{5}(1:num_iter,i),ri{6}(1:num_iter,i)];
+    for j=1:num_iter%designate torus point
         % Initial points of torus unstable manifolds
-        U0(p("d")*i-(p("d")-1):p("d")*i) = X0(p("d")*j-(p("d")-1):p("d")*j)+p("pert").*del_w_us(:,j);
+        U0(:,i,j) = X0(j,:)' + p("pert").*del_w_us_interpolation(:,i,j);
     end
 end
 
@@ -275,30 +276,23 @@ y = reshape(y, [a,b]);
 z = reshape(z, [a,b]);
 c = reshape(c, [a,b]);
 
+%color setting
+CO = zeros(p("num_iter"),p("num_iter"),3);
+CO(:,:,1) = 0.3010.*ones(p("num_iter")); % red
+CO(:,:,2) = 0.5450.*ones(p("num_iter")); % green
+CO(:,:,3) = 0.7.*ones(p("num_iter")); % blue
+
 % surf torus
 hs = surf(ri{1,1},ri{2,1},ri{3,1},CO);
 hold on
 
 % sample trajectories of torus manifolds
-% 1th and 2nd points are representives
-for i=1:5:p("N")
-    [~,X_sample] = ode113(@(t,x) fun_ode_n_CR3BP(t, x, p("mu")),[0 p("snap_fin_time")+0.1],U0(p("d")*i-(p("d")-1):p("d")*i));
-    plot3(X_sample(:,1),X_sample(:,2),X_sample(:,3),"r","LineWidth",1.5);
-    hold on
-end
+idx_tht1 = 180;
+idx_tht2 = 180;
 
-% interpolate function
-[rim,~,~,~] = interpolate_manifold(fin_qpos_m,del_w_us_inter_full,tht0,tht1,tht0_n,tht1_n,p);
-
-% surf manifold
-%color
-CO_un = zeros(p("num_iter"),p("num_iter"),3);
-CO_un(:,:,1) = 0.7010.*ones(p("num_iter")); % red
-
-% initialization of frame
-for sn=1:p("snap_span")
-    surf(real(rim{1,sn}),real(rim{2,sn}),real(rim{3,sn}),CO_un);
-end
+[~,X_sample] = ode113(@(t,x) fun_cr3bp(t,x,p("mu")),[0 p("snap_fin_time")+0.1],U0(:,idx_tht1,idx_tht2));
+plot3(X_sample(:,1),X_sample(:,2),X_sample(:,3),"r","LineWidth",1.5);
+plot3(ri{1}(idx_tht1,idx_tht2),ri{2}(idx_tht1,idx_tht2),ri{3}(idx_tht1,idx_tht2),"o",'markersize',10,'MarkerFaceColor','r');
 
 % for visualization
 shading interp
@@ -309,4 +303,9 @@ hold off
 %% End of script
 time = strcat('calculation time: ', num2str(toc(myTimer)));
 disp(time);
+
+%% save
+data_name = strcat('calculate_interpotatin_manifolds_QPT_CR3BP_L2_EM');
+data_name = strrep(data_name,'.',',');
+save(data_name);
 

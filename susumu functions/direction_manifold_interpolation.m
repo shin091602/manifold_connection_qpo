@@ -1,4 +1,4 @@
-function del_w_us_interpolation = direction_manifold_interpolation(fin_qpos, p)
+function del_w_us_interpolation = direction_manifold_interpolation(fin_qpos,ri,p)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculate the direction manifold interpolation
 % By: Soichiro Shin
@@ -19,6 +19,7 @@ N = p("N");
 M = p("M");
 mu = p("mu");
 num_iter = p("num_iter");
+num_iter = num_iter/3;
 
 
 % option for ODE
@@ -35,13 +36,11 @@ FR = fun_Fourier_interpolation(rho,p);
 % initialization
 del_w_us_interpolation = zeros(d,num_iter,num_iter);
 for i = 1:num_iter
-    % invariant curve idx
-    k = d*num_iter*(i-1)+1:d*num_iter*i;
     % invariant circle data
-    X0 = fin_qpos(k);
+    X0 = [ri{1}(1:num_iter,i),ri{2}(1:num_iter,i),ri{3}(1:num_iter,i),ri{4}(1:num_iter,i),ri{5}(1:num_iter,i),ri{6}(1:num_iter,i)];
     Mo = zeros(d*num_iter,d*num_iter);
     for j = 1:num_iter
-        Y0 = [X0(d*j-(d-1):d*j); reshape(eye(d),[],1)];
+        Y0 = [X0(j,:)'; reshape(eye(d),[],1)];
         % ODE
         [~,Y] = ode113(@(t,x) fun_stm_cr3bp(t,x,mu),[0 T],Y0,options_ODE);
         % Monodromy matrix of all states

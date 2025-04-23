@@ -5,6 +5,7 @@ function FR = fun_Fourier_interpolation(rho, p)
 d = p("d");
 N = p("N");
 num_iter = p("num_iter");
+num_iter = num_iter/3;
 
 %% make DFT matrix
 ck = zeros(num_iter,num_iter);
@@ -59,7 +60,7 @@ for i = 1:d*num_iter
 end
 
 %% make FR_check
-IDFT = kron(Ick, eyez(d));
+IDFT = kron(Ick, eye(d));
 FR_check = IDFT*DFT;
 for i = 1:d*num_iter
     for j = 1:d*num_iter
