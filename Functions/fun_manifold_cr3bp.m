@@ -17,17 +17,17 @@ function [XS_left, XS_right, XU_left, XU_right, Y] = fun_manifold_cr3bp(mu, x0, 
   M = reshape(Y(end, 7:42), 6, 6);
 
   % Eigenvector and eigenvalue analysis
-  [vec, val] = eig(M); % M = monodromy matrixの固有値(val)と固有ベクトル(vec)を返してる  
+  [vec, val] = eig(M);
   val = diag(val);
 
   [~, index_s] = min(abs(val)); % stable
   [~, index_u] = max(abs(val)); % unstable
 
   if (imag(val(index_s)) ~= 0) || (imag(val(index_u)) ~= 0)
-    error('Imag eigenvalues are dominant'); % 虚数の固有値しかないので、安定不安定多様体がつくれない。
+    error('Imag eigenvalues are dominant');
   end
 
-  % Stable and unstable eigenvectors(←固有値)
+  % Stable and unstable eigenvectors
   vector_stable = vec(:,index_s);
   if vector_stable(1) < 0
     vector_stable = - vector_stable;
@@ -50,7 +50,7 @@ function [XS_left, XS_right, XU_left, XU_right, Y] = fun_manifold_cr3bp(mu, x0, 
     Phi = reshape(Y(iteration, 7:42), 6, 6);
     
     % Grab state at the fixed point
-    x_star = Y(iteration, 1:6)'; % 周期軌道上の点
+    x_star = Y(iteration, 1:6)';
     
     % Map stable and unstable vectors forward
     S = Phi*vector_stable;
@@ -59,14 +59,15 @@ function [XS_left, XS_right, XU_left, XU_right, Y] = fun_manifold_cr3bp(mu, x0, 
     U = U/norm(U);
     
     % Create perturbation vector
-    vpert = xpert*norm(x_star(4:6))/norm(x_star(1:3));
-    pert = [ones(3,1).*xpert; ones(3,1).*vpert];
+    % vpert = xpert*norm(x_star(4:6))/norm(x_star(1:3));
+    % pert = [ones(3,1).*xpert; ones(3,1).*vpert];
+    pert = ones(6,1).*xpert;
     
     % Perturb conditions
-    XS_left(:,iteration)  = x_star - S.*pert; % 「周期軌道上の点＋擾乱」を初期値としてfun_cr3bpで軌道を伝播
+    XS_left(:,iteration)  = x_star - S.*pert;
     XS_right(:,iteration) = x_star + S.*pert;
     
     XU_left(:,iteration)  = x_star - U.*pert;
-    XU_right(:,iteration) = x_star + U.*pert;   
+    XU_right(:,iteration) = x_star + U.*pert;
   end
 end

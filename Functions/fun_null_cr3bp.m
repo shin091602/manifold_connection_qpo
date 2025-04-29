@@ -15,14 +15,5 @@ function [N, R] = fun_null_cr3bp(x0, t0, mu, options)
         Phi(4, 1), Phi(4, 3), Phi(4, 5), f_x(4);
         Phi(6, 1), Phi(6, 3), Phi(6, 5), f_x(6)];
   R = rank(DF);
-%   null_acr=max(size(DF)) * eps(norm(DF));
-% R = rank(DF);
-% SVD_null = svd(DF);
-% N_1 = null(DF);
-% null_acr = min(SVD_null)*1e+1;
-% N = null(DF, null_acr);
-
-  SVD_null = svd(DF);
   N = null(DF);   % Jacobian matlix
-  disp(N)
 end
