@@ -229,39 +229,28 @@ axis equal
 grid on
 hold off
 
-%% interpolate Lyapunov orbits
+%% interpolate Lyapunov orbit and monodromy matrix
+[~, Y1] = ode113(@(t,x) fun_stm_cr3bp(t,x,p('mu')), tspan_1, [lyapunov_init_1(3:end); reshape(eye(6), 36, 1)], options_ODE);
+[~, Y2] = ode113(@(t,x) fun_stm_cr3bp(t,x,p('mu')), tspan_2, [lyapunov_init_2(3:end); reshape(eye(6), 36, 1)], options_ODE);
+
 % Declination angle with respect to L1
-theta1 = atan2( x_corrected_1(:,2) - L1(2), x_corrected_1(:,1) - L1(1) );
+theta1 = atan2(Y1(:,1) - L1(1), Y1(:,2) - L1(2));
 theta1 = mod(theta1, 2*pi);    % [0,2π] normalization
 % sort
 [theta1_s, idx1] = sort(theta1);
-X1_s = x_corrected_1(idx1, :);
+X1_s = Y1(idx1, :);
 
 % Declination angle with respect to L2
-theta2 = atan2( x_corrected_2(:,2) - L2(2), x_corrected_2(:,1) - L2(1) );
+theta2 = atan2(Y2(:,1) - L2(1), Y2(:,2) - L2(2));
 theta2 = mod(theta2, 2*pi);    % [0,2π] normalization
 % sort
 [theta2_s, idx2] = sort(theta2);
-X2_s = x_corrected_2(idx2, :);
+X2_s = Y2(idx2, :);
 
 % Generate interpolating functions
-interpLyap1 = @(tht_q) cell2mat( arrayfun(@(k) interp1(theta1_s, X1_s(:,k), tht_q, 'pchip'), 1:size(X1_s,2), 'UniformOutput', false) );
+interpLyap1 = @(tht_q) cell2mat(arrayfun(@(k) interp1(theta1_s, X1_s(:,k), tht_q, 'pchip'), 1:size(X1_s,2), 'UniformOutput', false) );
 interpLyap2 = @(tht_q) cell2mat(arrayfun(@(k) interp1(theta2_s, X2_s(:,k), tht_q, 'pchip'), 1:size(X2_s,2), 'UniformOutput', false) );
-
-% 使い方例
+% use the interpolating functions
 tht_query = linspace(0, 2*pi, 500).';
 X1_resampled = interpLyap1(tht_query);
 X2_resampled = interpLyap2(tht_query);
-
-% プロット例
-figure();
-hold on;
-plot(X1_resampled(:,1), X1_resampled(:,2), 'k--','LineWidth',4);
-plot(X2_resampled(:,1), X2_resampled(:,2), 'k--','LineWidth',4);
-plot(x_corrected_1(:, 1), x_corrected_1(:, 2), 'r', 'LineWidth', 2);
-plot(x_corrected_2(:, 1), x_corrected_2(:, 2), 'b', 'LineWidth', 2);
-legend('L1 補間','L2 補間','Location','best');
-xlabel('$x$','Interpreter','latex');
-ylabel('$y$','Interpreter','latex');
-axis equal;
-grid on;
