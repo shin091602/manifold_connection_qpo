@@ -105,7 +105,7 @@ while 1
 
     % differential correction
     for iteration = 1:p('iteration_max')
-        [x_n_1, t_n_1, C] = fun_differential_correction_cr3bp(x0_1, t0_1, mu,options_ODE);
+        [x_n_1, t_n_1, C] = fun_differential_correction_cr3bp(x0_1, t0_1, p('mu'),options_ODE);
 
         tspan = [0 2*t_n_1];
         [t_corrected_1, x_corrected_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan, x_n_1, options_ODE);
@@ -152,5 +152,79 @@ while 1
     end
 end
 
+%% Loop for L2-Lyapunov orbit
+count = 0;
+delta = 1e-4; % step size
 
-%%
+while 1
+    count = count + 1;
+
+    % differential correction
+    for iteration = 1:p('iteration_max')
+        [x_n_2, t_n_2, C] = fun_differential_correction_cr3bp(x0_2, t0_2, p('mu'),options_ODE);
+
+        tspan = [0 2*t_n_2];
+        [t_corrected_2, x_corrected_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan, x_n_2, options_ODE);
+
+        x_error_2 = norm(x_corrected_2(end, :) - x_corrected_2(1, :));
+
+        if x_error_2 < p('threshold')
+            break;
+        end
+
+        if x_error_2 > 1e+3
+            disp('calculation diverged')
+            return;
+        end
+
+        if iteration == p('iteration_max')
+            disp('reach iteration max')
+        end
+
+        x0_2 = x_n_2;
+        t0_2 = t_n_2;
+    end
+
+    if C < p("C_xn")
+        x0_2(1) = x0_2(1) - delta;
+        delta = delta / 5;
+        disp(strcat('delta changed : count = ', num2str(count), ' delta = ', num2str(delta)));
+    end
+
+    if (count >= 100)&&(mod(count,100)==0)
+        disp(strcat('count = ', num2str(count), ' delta = ', num2str(delta)));
+    end
+
+    if abs(C - p("C_xn")) < p("C_error")
+        lyapunov_init_2 = [C; t_n_2; x_n_2(:,1)];
+        disp('L2 Lyapunov orbit found');
+        break
+    end
+
+    x0_2(1) = x0_2(1) + delta;
+
+    if count == p('count_max') - 1
+        break
+    end
+end
+
+%% calculate Lyapunov orbits
+tspan_1 = [0 2*lyapunov_init_1(2)];
+[t_corrected_1, x_corrected_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_1, lyapunov_init_1(3:end), options_ODE);
+tspan_2 = [0 2*lyapunov_init_2(2)];
+[t_corrected_2, x_corrected_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_2, lyapunov_init_2(3:end), options_ODE);
+
+% plot Lyapunov orbits
+figure(1)
+plot(x_corrected_1(:, 1), x_corrected_1(:, 2), 'r', 'LineWidth', 2);
+hold on
+plot(x_corrected_2(:, 1), x_corrected_2(:, 2), 'b', 'LineWidth', 2);
+plot(L1(1), L1(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+plot(L2(1), L2(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+plot(1-mu, 0, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+xlabel('$x$ [-]', 'Interpreter', 'latex', 'FontSize', 24);
+ylabel('$y$ [-]', 'Interpreter', 'latex', 'FontSize', 24);
+axis equal
+grid on
+hold off
+
