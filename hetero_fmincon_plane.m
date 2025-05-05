@@ -291,8 +291,8 @@ end
 
 % Apply perturbation to abitrary point of the Lyapunov orbit
 % set the angle of the pointーーーーーーーーーーーーーーーーーーーーーーー
-tht_query_1 = 0;
-tht_query_2 = 0;
+tht_query_1 = pi/6;
+tht_query_2 = pi*1.5;
 X1_resampled = interpLyap1(tht_query_1);
 X2_resampled = interpLyap2(tht_query_2);
 % Grab state at the fixed point
@@ -340,7 +340,7 @@ tspan_u = [0 tf];
 [~, xu_left_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_2, options_ODE);
 [~, xu_right_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_2, options_ODE);
 
-% plot stable and unstable manifolds
+%% plot stable and unstable manifolds
 figure();
 plot(xs_left_1(:, 1), xs_left_1(:, 2), 'r', 'LineWidth', 2);
 hold on
@@ -366,3 +366,17 @@ axis equal
 grid on
 hold off
 
+%% calculatate the manifolds to poincare section
+% set event function
+options_ODE_1   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_1(t,x,mu));
+options_ODE_2   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_2(t,x,mu));
+% calculate the manifolds
+[~, xs_left_1, ~, xes_left_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_1, options_ODE_1);
+[~, xs_right_1, ~, xes_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_1, options_ODE_1);
+[~, xu_left_1, ~, xeu_left_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_1, options_ODE_1);
+[~, xu_right_1, ~, xeu_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_1, options_ODE_1);
+
+[~, xs_left_2, ~, xes_left_2, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_2, options_ODE_2);
+[~, xs_right_2, ~, xes_right_2, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_2, options_ODE_2);
+[~, xu_left_2, ~ , xeu_left_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_left_2 ,options_ODE_2);
+[~, xu_right_2 ,~ , xeu_right_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_right_2 ,options_ODE_2);
