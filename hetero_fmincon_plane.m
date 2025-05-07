@@ -60,6 +60,8 @@ myTimer = tic;        %start timer
 
 % ODE options
 options_ODE = odeset('RelTol',1e-13,'AbsTol',1e-13);
+options_ODE_1   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_1(t,x,mu));
+options_ODE_2   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_2(t,x,mu));
 
 %Dictionary of the variables
 % constant values for the calculation are defined here
@@ -255,8 +257,6 @@ interpLyap1 = @(tht_q) cell2mat(arrayfun(@(k) interp1(theta1_s, X1_s(:,k), tht_q
 interpLyap2 = @(tht_q) cell2mat(arrayfun(@(k) interp1(theta2_s, X2_s(:,k), tht_q, 'pchip'), 1:size(X2_s,2), 'UniformOutput', false) );
 
 %% use the interpolating functions
-
-
 % monodromy matrix
 M_1 = reshape(Y1(end, 7:end), 6, 6);
 M_2 = reshape(Y2(end, 7:end), 6, 6);
@@ -289,10 +289,168 @@ if vector_unstable_2(1) < 0
     vector_unstable_2 = -vector_unstable_2;
 end
 
+% %% Apply perturbation to abitrary point of the Lyapunov orbit
+% % set the angle of the pointーーーーーーーーーーーーーーーーーーーーーーー
+% tht_query_1 = 0.52501570;
+% tht_query_2 = 4.64640599;
+% X1_resampled = interpLyap1(tht_query_1);
+% X2_resampled = interpLyap2(tht_query_2);
+% % Grab state at the fixed point
+% x_star_1 = X1_resampled(1:6);
+% x_star_2 = X2_resampled(1:6);
+% % Grab state transition matrix at the fixed point
+% phi_star_1 = reshape(X1_resampled(7:end), 6, 6);
+% phi_star_2 = reshape(X2_resampled(7:end), 6, 6);
+%
+% % Map stable and unstable vectors forward
+% S_1 = phi_star_1 * vector_stable_1;
+% S_1 = S_1 / norm(S_1);
+% U_1 = phi_star_1 * vector_unstable_1;
+% U_1 = U_1 / norm(U_1);
+% S_2 = phi_star_2 * vector_stable_2;
+% S_2 = S_2 / norm(S_2);
+% U_2 = phi_star_2 * vector_unstable_2;
+% U_2 = U_2 / norm(U_2);
+%
+% % create perturbation vector
+% pert = ones(6, 1) * p('pert');
+%
+% % Perturb conditions
+% XS_left_1 = x_star_1' + S_1 .* pert;
+% XS_right_1 = x_star_1' - S_1 .* pert;
+% XU_left_1 = x_star_1' + U_1 .* pert;
+% XU_right_1 = x_star_1' - U_1 .* pert;
+%
+% XS_left_2 = x_star_2' + S_2 .* pert;
+% XS_right_2 = x_star_2' - S_2 .* pert;
+% XU_left_2 = x_star_2' + U_2 .* pert;
+% XU_right_2 = x_star_2' - U_2 .* pert;
+%
+% %% calculate the stable and unstable manifolds
+% tf = 6;
+% tspan_s = [tf 0];
+% tspan_u = [0 tf];
+% [~, xs_left_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_1, options_ODE);
+% [~, xs_right_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_1, options_ODE);
+% [~, xu_left_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_1, options_ODE);
+% [~, xu_right_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_1, options_ODE);
+%
+% [~, xs_left_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_2, options_ODE);
+% [~, xs_right_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_2, options_ODE);
+% [~, xu_left_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_2, options_ODE);
+% [~, xu_right_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_2, options_ODE);
+%
+% %% plot stable and unstable manifolds
+% figure();
+% plot(xs_left_1(:, 1), xs_left_1(:, 2), 'r', 'LineWidth', 2);
+% hold on
+% plot(xs_right_1(:, 1), xs_right_1(:, 2), 'r', 'LineWidth', 2);
+% plot(xu_left_1(:, 1), xu_left_1(:, 2), 'b', 'LineWidth', 2);
+% plot(xu_right_1(:, 1), xu_right_1(:, 2), 'b', 'LineWidth', 2);
+% plot(xs_left_2(:, 1), xs_left_2(:, 2), 'r', 'LineWidth', 2);
+% plot(xs_right_2(:, 1), xs_right_2(:, 2), 'r', 'LineWidth', 2);
+% plot(xu_left_2(:, 1), xu_left_2(:, 2), 'b', 'LineWidth', 2);
+% plot(xu_right_2(:, 1), xu_right_2(:, 2), 'b', 'LineWidth', 2);
+% plot(x_corrected_1(:, 1), x_corrected_1(:, 2), 'k', 'LineWidth', 2);
+% plot(x_corrected_2(:, 1), x_corrected_2(:, 2), 'k', 'LineWidth', 2);
+% plot(L1(1), L1(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+% plot(L2(1), L2(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+% plot(x_star_1(1), x_star_1(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'm');
+% plot(x_star_2(1), x_star_2(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'm');
+% plot(1-mu, 0, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+% xlabel('$x$ [-]', 'Interpreter', 'latex', 'FontSize', 24);
+% ylabel('$y$ [-]', 'Interpreter', 'latex', 'FontSize', 24);
+% xlim([0.7 1.3]);
+% ylim([-0.2, 0.2]);
+% axis equal
+% grid on
+% hold off
+
+% %% calculatate the manifolds to poincare section
+% % set event function
+% options_ODE_1   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_1(t,x,mu));
+% options_ODE_2   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_2(t,x,mu));
+% % calculate the manifolds
+% [~, xs_left_1, ~, xes_left_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_1, options_ODE_1);
+% [~, xs_right_1, ~, xes_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_1, options_ODE_1);
+% [~, xu_left_1, ~, xeu_left_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_1, options_ODE_1);
+% [~, xu_right_1, ~, xeu_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_1, options_ODE_1);
+%
+% [~, xs_left_2, ~, xes_left_2, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_2, options_ODE_2);
+% [~, xs_right_2, ~, xes_right_2, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_2, options_ODE_2);
+% [~, xu_left_2, ~ , xeu_left_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_left_2 ,options_ODE_2);
+% [~, xu_right_2 ,~ , xeu_right_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_right_2 ,options_ODE_2);
+
+%% search the initial point of the heteroclinic connection
+theta_range = linspace(0, 2*pi, 10000);
+color      = jet;
+theta_lim = linspace(0, 2*pi, size(color,1));
+Interp_theta   = griddedInterpolant(theta_lim, color);
+figure();
+hold on
+for i = 1:length(theta_range)
+    % L1
+    X1 = interpLyap1(theta_range(i));
+    x1 = X1(1:6);
+    phi1 = reshape(X1(7:end), 6, 6);
+    S = phi1 * vector_stable_1;
+    S = S / norm(S);
+    XS = x1' + p('pert') * S;
+    [~, ~, ~, YE1, ~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_s, XS, options_ODE_1);
+    if YE1
+        if YE1(2) > 0.1
+            plot3(YE1(2), YE1(5), theta_range(i), '+', 'Color', Interp_theta(theta_range(i)), 'MarkerSize', 5);
+        end
+    end
+
+    % L2
+    X2 = interpLyap2(theta_range(i));
+    x2 = X2(1:6);
+    phi2 = reshape(X2(7:end), 6, 6);
+    U = phi2 * vector_stable_2;
+    U = U / norm(U);
+    XU = x2' - p('pert') * U;
+    [~, ~, ~, YE2, ~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u, XU, options_ODE_2);
+    if YE2
+        if YE2(2) > 0.1
+            plot3(YE2(2), YE2(5), theta_range(i), '*', 'Color', Interp_theta(theta_range(i)), 'MarkerSize', 5);
+        end
+    end
+end
+hL1 = plot(nan, nan, '+', 'MarkerSize', 5, 'Color', [0 0 0]);  % L1 マーカー
+hL2 = plot(nan, nan, '*', 'MarkerSize', 5, 'Color', [0 0 0]);  % L2 マーカー
+% 凡例を出力
+legend([hL1, hL2], {'L1 stable manifold', 'L2 unstable manifold'}, 'Location', 'best');
+colormap jet;
+c = colorbar;
+ylabel(c, 'theta [-]', 'FontSize', 15);
+caxis([0 2*pi]);
+c.Ticks = linspace(0, 2*pi, 20);
+xlim([-0.2 0.2]);
+ylim([-0.5 0.5]);
+grid on
+hold off
+
+%% use fsolve to find the intersection
+% 初期値（お好みで調整）
+th0 = [5.61552; 3.19281];
+
+optsFS = optimoptions('fsolve', ...
+    'Display','iter', ...
+    'TolFun',1e-12, ...
+    'TolX',1e-12, ...
+    'Algorithm','levenberg-marquardt');  % m>=n の系に適したアルゴリズム
+
+% handle function
+systemFun = @(th) hetero_system(th, interpLyap1, interpLyap2,vector_unstable_1, vector_stable_2,p, tspan_u, tspan_s, options_ODE_1, options_ODE_2);
+
+% solve
+[th_sol, Fval, exitflag] = fsolve(systemFun, th0, optsFS);
+fprintf('θ₁* = %.8f, θ₂* = %.8f, residual norm = %.3e\n', th_sol(1), th_sol(2), norm(Fval));
 % Apply perturbation to abitrary point of the Lyapunov orbit
 % set the angle of the pointーーーーーーーーーーーーーーーーーーーーーーー
-tht_query_1 = pi/6;
-tht_query_2 = pi*1.5;
+tht_query_1 = th_sol(1);
+tht_query_2 = th_sol(2);
 X1_resampled = interpLyap1(tht_query_1);
 X2_resampled = interpLyap2(tht_query_2);
 % Grab state at the fixed point
@@ -305,10 +463,6 @@ phi_star_2 = reshape(X2_resampled(7:end), 6, 6);
 % Map stable and unstable vectors forward
 S_1 = phi_star_1 * vector_stable_1;
 S_1 = S_1 / norm(S_1);
-U_1 = phi_star_1 * vector_unstable_1;
-U_1 = U_1 / norm(U_1);
-S_2 = phi_star_2 * vector_stable_2;
-S_2 = S_2 / norm(S_2);
 U_2 = phi_star_2 * vector_unstable_2;
 U_2 = U_2 / norm(U_2);
 
@@ -316,41 +470,23 @@ U_2 = U_2 / norm(U_2);
 pert = ones(6, 1) * p('pert');
 
 % Perturb conditions
-XS_left_1 = x_star_1' + S_1 .* pert;
-XS_right_1 = x_star_1' - S_1 .* pert;
-XU_left_1 = x_star_1' + U_1 .* pert;
-XU_right_1 = x_star_1' - U_1 .* pert;
-
-XS_left_2 = x_star_2' + S_2 .* pert;
-XS_right_2 = x_star_2' - S_2 .* pert;
-XU_left_2 = x_star_2' + U_2 .* pert;
-XU_right_2 = x_star_2' - U_2 .* pert;
-
-%% calculate the stable and unstable manifolds
+XS_right_1 = x_star_1' + S_1 .* pert;
+XU_left_2 = x_star_2' - U_2 .* pert;
+% calculate the stable and unstable manifolds
 tf = 6;
 tspan_s = [tf 0];
 tspan_u = [0 tf];
-[~, xs_left_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_1, options_ODE);
-[~, xs_right_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_1, options_ODE);
-[~, xu_left_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_1, options_ODE);
-[~, xu_right_1] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_1, options_ODE);
 
-[~, xs_left_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_2, options_ODE);
-[~, xs_right_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_2, options_ODE);
-[~, xu_left_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_2, options_ODE);
-[~, xu_right_2] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_2, options_ODE);
+% calculatate the manifolds to poincare section
+% calculate the manifolds
+[~, xs_right_1, ~, xes_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_1, options_ODE_1);
+[~, xu_left_2, ~ , xeu_left_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_left_2 ,options_ODE_2);
 
-%% plot stable and unstable manifolds
+% plot stable and unstable manifolds
 figure();
-plot(xs_left_1(:, 1), xs_left_1(:, 2), 'r', 'LineWidth', 2);
 hold on
 plot(xs_right_1(:, 1), xs_right_1(:, 2), 'r', 'LineWidth', 2);
-plot(xu_left_1(:, 1), xu_left_1(:, 2), 'b', 'LineWidth', 2);
-plot(xu_right_1(:, 1), xu_right_1(:, 2), 'b', 'LineWidth', 2);
-plot(xs_left_2(:, 1), xs_left_2(:, 2), 'r', 'LineWidth', 2);
-plot(xs_right_2(:, 1), xs_right_2(:, 2), 'r', 'LineWidth', 2);
 plot(xu_left_2(:, 1), xu_left_2(:, 2), 'b', 'LineWidth', 2);
-plot(xu_right_2(:, 1), xu_right_2(:, 2), 'b', 'LineWidth', 2);
 plot(x_corrected_1(:, 1), x_corrected_1(:, 2), 'k', 'LineWidth', 2);
 plot(x_corrected_2(:, 1), x_corrected_2(:, 2), 'k', 'LineWidth', 2);
 plot(L1(1), L1(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
@@ -365,18 +501,3 @@ ylim([-0.2, 0.2]);
 axis equal
 grid on
 hold off
-
-%% calculatate the manifolds to poincare section
-% set event function
-options_ODE_1   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_1(t,x,mu));
-options_ODE_2   = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @(t,x) odestop_hetero_2(t,x,mu));
-% calculate the manifolds
-[~, xs_left_1, ~, xes_left_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_1, options_ODE_1);
-[~, xs_right_1, ~, xes_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_1, options_ODE_1);
-[~, xu_left_1, ~, xeu_left_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_left_1, options_ODE_1);
-[~, xu_right_1, ~, xeu_right_1, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_u, XU_right_1, options_ODE_1);
-
-[~, xs_left_2, ~, xes_left_2, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_left_2, options_ODE_2);
-[~, xs_right_2, ~, xes_right_2, ~] = ode113(@(t,x) fun_cr3bp(t, x, p('mu')), tspan_s, XS_right_2, options_ODE_2);
-[~, xu_left_2, ~ , xeu_left_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_left_2 ,options_ODE_2);
-[~, xu_right_2 ,~ , xeu_right_2 ,~] = ode113(@(t,x) fun_cr3bp(t,x,p('mu')), tspan_u,XU_right_2 ,options_ODE_2);
