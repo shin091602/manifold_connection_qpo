@@ -16,7 +16,7 @@ switch switchplanets
 		mu = 1.21536E-02; % mass ratio
 		a_1= 3.84400E+05; % primary-secondary distance[km]
 		a_s= 4.52003E-03; % secondary radius[nonD]
-		w_1= 2.66167E-06; % ang vel[rad/s] 
+		w_1= 2.66167E-06; % ang vel[rad/s]
 
 	case 3
 		% Sun-Mars

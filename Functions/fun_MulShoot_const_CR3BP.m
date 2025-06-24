@@ -8,14 +8,14 @@ function [c, ceq] = fun_MulShoot_const_CR3BP(X, r0, rf, n, ToF, mu,options)
 % mu      : mass ratio of the primaries
 % options : options for ode
 
-  if(size(r0,2) > 1), r0 = r0'; end
-  if(size(rf,2) > 1), rf = rf'; end
+if(size(r0,2) > 1), r0 = r0'; end
+if(size(rf,2) > 1), rf = rf'; end
 
-  % Equality constraint
-  ceq = [sum(X((end-n+2):end)) - ToF];
+% Equality constraint
+ceq = [sum(X((end-n+2):end)) - ToF];
 
-  % Inequality constraint
-  c = [];
+% Inequality constraint
+c = [];
 end
 
 

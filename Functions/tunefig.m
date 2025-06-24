@@ -10,7 +10,7 @@ function [] = tunefig(style, figs, custom_style)
 %   See also FIGURE, AXES, LINE
 
 % Copyright (c) 2019 larking95(https://qiita.com/larking95)
-% Released under the MIT Licence 
+% Released under the MIT Licence
 % https://opensource.org/licenses/mit-license.php
 
 %% 初期化
